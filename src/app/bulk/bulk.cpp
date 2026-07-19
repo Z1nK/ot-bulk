@@ -6,6 +6,7 @@
 
 #include <command-parser/command_parser.hpp>
 #include <executor/executor.hpp>
+#include <time-utils/time.hpp>
 
 int main(int argc, char* argv[]) {
   std::cout << "Hello, World!" << argc << " " << argv[0] << std::endl;
@@ -16,6 +17,9 @@ int main(int argc, char* argv[]) {
 
   CommandParser parser(input_data, 3);
   Executor executor;
+
+  std::cout << getCurrentTimeStr() << std::endl;
+  std::cout << getUnixTimestampString() << std::endl;
 
   for (auto block = parser.nextBlock(); block; block = parser.nextBlock()) {
     std::cout << "Block: ";

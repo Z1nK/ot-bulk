@@ -5,6 +5,7 @@ target_compile_features(bulk PUBLIC cxx_std_20)
 target_link_libraries(bulk PRIVATE
   comexec::executor-lib-shared
     comexec::parser-lib-shared
+    common::time-utils
 )
 
 if (MSVC)
