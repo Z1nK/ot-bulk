@@ -8,6 +8,7 @@ void Executor::execute() {
     std::cout << "Executing task: " << task << std::endl;
     tasks_.pop();
   }
+  std::cout << "------------------" << std::endl;
 } 
 
 void Executor::addTask(const std::string_view& task) {
