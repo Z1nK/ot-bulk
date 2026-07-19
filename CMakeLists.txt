@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(ot_bulk VERSION ${PROJECT_VERSION})
+project(otbulk VERSION ${PROJECT_VERSION})
 
-option(WITH_GOOGLE_TEST "Whether to build Google test" OFF)
+option(WITH_GOOGLE_TEST "Whether to build Google test" ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 set(CMAKE_CONFIG_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/configs)
