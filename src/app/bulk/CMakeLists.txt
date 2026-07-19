@@ -5,8 +5,8 @@ target_compile_features(bulk PUBLIC cxx_std_20)
 find_package(Threads REQUIRED)
 
 target_link_libraries(bulk PRIVATE
-  comexec::executor-lib-shared
-    comexec::parser-lib-shared
+  comexec::executor-lib-static
+    comexec::parser-lib-static
     common::time-utils
     Threads::Threads
 )
