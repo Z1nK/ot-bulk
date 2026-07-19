@@ -1,6 +1,8 @@
 #include "command_parser.hpp"
 
-std::optional<std::vector<std::string>> CommandParser::feedLine(std::string_view line) {
+std::optional<std::vector<Command>> CommandParser::feedLine(const Command& command) {
+  const std::string_view line = command.name;
+
   if (line == "{") {
     ++brace_depth_;
     if (brace_depth_ == 1 && !current_block_.empty()) {
@@ -28,7 +30,7 @@ std::optional<std::vector<std::string>> CommandParser::feedLine(std::string_view
     return result;
   }
 
-  current_block_.emplace_back(line);
+  current_block_.push_back(command);
   if (brace_depth_ == 0 && current_block_.size() == default_block_size_) {
     auto result = std::move(current_block_);
     current_block_.clear();
@@ -38,7 +40,7 @@ std::optional<std::vector<std::string>> CommandParser::feedLine(std::string_view
   return std::nullopt;
 }
 
-std::optional<std::vector<std::string>> CommandParser::flush() {
+std::optional<std::vector<Command>> CommandParser::flush() {
   if (current_block_.empty()) {
     return std::nullopt;
   }

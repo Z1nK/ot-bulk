@@ -75,6 +75,7 @@ target_include_directories(parser-lib-static PUBLIC
 
 # install(FILES
 #   command_parser.hpp
+#   command.hpp
 #   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/command-parser
 # )  
 

@@ -1,20 +1,23 @@
+#include "blocking_queue.hpp"
+
+#include <executor/executor.hpp>
+
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
 
+#include <command-parser/command.hpp>
 #include <command-parser/command_parser.hpp>
-#include <executor/executor.hpp>
 #include <time-utils/time.hpp>
-
-#include "blocking_queue.hpp"
 
 namespace {
 
-void runConsumer(BlockingQueue<std::string>& lines) {
+void runConsumer(BlockingQueue<Command>& commands) {
   CommandParser parser(3);
   Executor executor;
 
-  auto executeIfReady = [&executor](const std::optional<std::vector<std::string>>& block) {
+  auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {
       return;
     }
@@ -24,29 +27,30 @@ void runConsumer(BlockingQueue<std::string>& lines) {
     executor.execute();
   };
 
-  while (auto line = lines.pop()) {
-    executeIfReady(parser.feedLine(*line));
+  while (auto command = commands.pop()) {
+    executeIfReady(parser.feedLine(*command));
   }
   executeIfReady(parser.flush());
 }
 
 }  // namespace
 
-int main(int argc, char* argv[]) {
-  std::cout << "Hello, World!" << argc << " " << argv[0] << std::endl;
-  std::cout << getCurrentTimeStr() << std::endl;
-  std::cout << getUnixTimestampString() << std::endl;
+int main() {
+  // std::cout << "Hello, World!" << argc << " " << argv[0] << std::endl;
+  // std::cout << getCurrentTimeStr() << std::endl;
+  // std::cout << getUnixTimestampString() << std::endl;
 
-  BlockingQueue<std::string> lines;
+  BlockingQueue<Command> commands;
 
-  std::thread consumer(runConsumer, std::ref(lines));
+  std::thread consumer(runConsumer, std::ref(commands));
 
-  // Producer: read stdin line by line and hand each line to the consumer.
+  // Producer: read stdin line by line, timestamp each line as it arrives,
+  // and hand the resulting Command to the consumer.
   std::string line;
   while (std::getline(std::cin, line)) {
-    lines.push(std::move(line));
+    commands.push(Command(std::move(line)));
   }
-  lines.close();
+  commands.close();
 
   consumer.join();
 

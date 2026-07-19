@@ -1,14 +1,14 @@
 #pragma once
-#include <iostream>
 #include <queue>
-#include <string>
+
+#include <command-parser/command.hpp>
 
 class Executor {
 public:
   void execute();
 
-  void addTask(const std::string_view& task);
+  void addTask(const Command& task);
 
 private:
-  std::queue<std::string> tasks_;
+  std::queue<Command> tasks_;
 };

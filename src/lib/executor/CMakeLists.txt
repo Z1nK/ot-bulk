@@ -16,12 +16,13 @@ target_sources(executor-lib-obj
 
 target_include_directories(executor-lib-obj PUBLIC
   $<INSTALL_INTERFACE:include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>    
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
   $<BUILD_INTERFACE:${OT_BULK_AUTOGEN_DIR}>)
 
-# target_link_libraries(executor-lib-obj
-#   PUBLIC
-# )
+target_link_libraries(executor-lib-obj
+  PUBLIC
+    $<BUILD_INTERFACE:parser-lib-obj>
+)
 
 # # --------SHARED---------
 
