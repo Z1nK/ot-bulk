@@ -41,6 +41,12 @@ std::optional<std::vector<Command>> CommandParser::feedLine(const Command& comma
 }
 
 std::optional<std::vector<Command>> CommandParser::flush() {
+  if (brace_depth_ > 0) {
+    current_block_.clear();
+    brace_depth_ = 0;
+    return std::nullopt;
+  }
+
   if (current_block_.empty()) {
     return std::nullopt;
   }
