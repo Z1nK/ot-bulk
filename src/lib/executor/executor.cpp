@@ -28,8 +28,8 @@ void Executor::execute() {
     return;
   }
 
-  std::cout << "bulk: ";
-  output_file << "bulk: ";
+  std::cout << "bulk:";
+  output_file << "bulk:";
   while (!tasks_.empty()) {
     const auto& task = tasks_.front();
     // const auto timestamp = std::chrono::floor<std::chrono::seconds>(task.timestamp);

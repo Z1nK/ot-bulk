@@ -13,8 +13,8 @@
 
 namespace {
 
-void runConsumer(BlockingQueue<Command>& commands) {
-  CommandParser parser(3);
+void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
+  CommandParser parser(default_block_size);
   Executor executor;
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
@@ -35,14 +35,25 @@ void runConsumer(BlockingQueue<Command>& commands) {
 
 }  // namespace
 
-int main() {
-  // std::cout << "Hello, World!" << argc << " " << argv[0] << std::endl;
+int main(int argc, char* argv[]) {  
+  int default_block_size;
+  if (argc > 1) {
+    try {
+      default_block_size = std::stoi(argv[1]);
+    } catch (const std::invalid_argument& e) {
+      std::cerr << "Invalid argument: " << argv[1] << std::endl;
+      return 1;
+    }
+  } else {
+    default_block_size = 3;
+  }
+
   // std::cout << getCurrentTimeStr() << std::endl;
   // std::cout << getUnixTimestampString() << std::endl;
 
   BlockingQueue<Command> commands;
 
-  std::thread consumer(runConsumer, std::ref(commands));
+  std::thread consumer(runConsumer, std::ref(commands), default_block_size);
 
   // Producer: read stdin line by line, timestamp each line as it arrives,
   // and hand the resulting Command to the consumer.
