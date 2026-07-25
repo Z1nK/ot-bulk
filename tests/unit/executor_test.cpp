@@ -64,9 +64,7 @@ TEST_F(ExecutorTest, ExecuteWithNoTasksWritesNoLogFile) {
 
 TEST_F(ExecutorTest, ExecuteWritesAllTasksToLogFileAndDrainsQueue) {
   Executor executor;
-  executor.addTask(Command("cmd1"));
-  executor.addTask(Command("cmd2"));
-  executor.addTask(Command("cmd3"));
+  executor.addTask({Command("cmd1"), Command("cmd2"), Command("cmd3")});
 
   executor.execute();
 
@@ -77,7 +75,7 @@ TEST_F(ExecutorTest, ExecuteWritesAllTasksToLogFileAndDrainsQueue) {
   std::ostringstream contents;
   contents << in.rdbuf();
 
-  EXPECT_EQ(contents.str(), "bulk:  cmd1 cmd2 cmd3\n");
+  EXPECT_EQ(contents.str(), "bulk: cmd1 cmd2 cmd3\n");
 
   // A second execute() on the now-empty queue must not write another file.
   executor.execute();

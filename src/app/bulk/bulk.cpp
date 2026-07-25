@@ -21,9 +21,7 @@ void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
     if (!block) {
       return;
     }
-    for (const auto& command : *block) {
-      executor.addTask(command);
-    }
+    executor.addTask(*block);
     executor.execute();
   };
 
