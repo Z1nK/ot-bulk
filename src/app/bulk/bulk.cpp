@@ -1,6 +1,8 @@
 #include "blocking_queue.hpp"
 
 #include <executor/executor.hpp>
+#include <executor/console_observer.hpp>
+#include <executor/file_observer.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -16,6 +18,9 @@ namespace {
 void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
   CommandParser parser(default_block_size);
   Executor executor;
+
+  executor.subscribe(std::make_shared<ConsoleObserver>());
+  executor.subscribe(std::make_shared<FileObserver>());
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {
