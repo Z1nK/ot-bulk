@@ -1,83 +1,58 @@
 #include <executor/executor.hpp>
 
-#include <chrono>
-#include <filesystem>
-#include <fstream>
-#include <optional>
-#include <sstream>
-#include <string>
+#include <memory>
+#include <vector>
 
 #include <gtest/gtest.h>
 
-namespace fs = std::filesystem;
-
 namespace {
 
-class ExecutorTest : public ::testing::Test {
-protected:
-  void SetUp() override {
-    original_cwd_ = fs::current_path();
-    test_dir_ = fs::temp_directory_path() /
-                ("executor_test_" +
-                 std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    fs::create_directories(test_dir_);
-    fs::current_path(test_dir_);
+class FakeObserver : public Observer {
+public:
+  void onBlockUpdate(const std::vector<Command>& block) override {
+    blocks.push_back(block);
   }
 
-  void TearDown() override {
-    fs::current_path(original_cwd_);
-    fs::remove_all(test_dir_);
-  }
-
-  size_t countEntries() const {
-    return static_cast<size_t>(
-        std::distance(fs::directory_iterator(test_dir_), fs::directory_iterator{}));
-  }
-
-  // Returns the single *.log file written to the current directory, or
-  // std::nullopt if none/more than one exists.
-  std::optional<fs::path> findLogFile() const {
-    std::optional<fs::path> found;
-    for (const auto& entry : fs::directory_iterator(test_dir_)) {
-      if (entry.path().extension() == ".log") {
-        if (found) {
-          return std::nullopt;  // ambiguous, more than one
-        }
-        found = entry.path();
-      }
-    }
-    return found;
-  }
-
-  fs::path original_cwd_;
-  fs::path test_dir_;
+  std::vector<std::vector<Command>> blocks;
 };
 
 }  // namespace
 
-TEST_F(ExecutorTest, ExecuteWithNoTasksWritesNoLogFile) {
+TEST(ExecutorTest, ExecuteWithNoTasksNotifiesNoObservers) {
   Executor executor;
+  auto observer = std::make_shared<FakeObserver>();
+  executor.subscribe(observer);
+
   executor.execute();
 
-  EXPECT_EQ(countEntries(), 0u);
+  EXPECT_TRUE(observer->blocks.empty());
 }
 
-TEST_F(ExecutorTest, ExecuteWritesAllTasksToLogFileAndDrainsQueue) {
+TEST(ExecutorTest, ExecuteNotifiesAllObserversWithEachBlockAndDrainsQueue) {
   Executor executor;
-  executor.addTask({Command("cmd1"), Command("cmd2"), Command("cmd3")});
+  auto first_observer = std::make_shared<FakeObserver>();
+  auto second_observer = std::make_shared<FakeObserver>();
+  executor.subscribe(first_observer);
+  executor.subscribe(second_observer);
+
+  std::vector<Command> block1{Command("cmd1"), Command("cmd2")};
+  std::vector<Command> block2{Command("cmd3")};
+  executor.addTask(block1);
+  executor.addTask(block2);
 
   executor.execute();
 
-  auto log_file = findLogFile();
-  ASSERT_TRUE(log_file);
+  for (const auto* observer : {first_observer.get(), second_observer.get()}) {
+    ASSERT_EQ(observer->blocks.size(), 2u);
+    EXPECT_EQ(observer->blocks[0].size(), 2u);
+    EXPECT_EQ(observer->blocks[0][0].name, "cmd1");
+    EXPECT_EQ(observer->blocks[0][1].name, "cmd2");
+    EXPECT_EQ(observer->blocks[1].size(), 1u);
+    EXPECT_EQ(observer->blocks[1][0].name, "cmd3");
+  }
 
-  std::ifstream in(*log_file);
-  std::ostringstream contents;
-  contents << in.rdbuf();
-
-  EXPECT_EQ(contents.str(), "bulk: cmd1 cmd2 cmd3\n");
-
-  // A second execute() on the now-empty queue must not write another file.
+  // A second execute() on the now-empty queue must not notify observers again.
   executor.execute();
-  EXPECT_EQ(countEntries(), 1u);
+  EXPECT_EQ(first_observer->blocks.size(), 2u);
+  EXPECT_EQ(second_observer->blocks.size(), 2u);
 }
