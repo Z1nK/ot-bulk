@@ -1,3 +1,4 @@
+add_subdirectory(concurrency)
 add_subdirectory(datasink)
 add_subdirectory(executor)
 add_subdirectory(command-parser)
