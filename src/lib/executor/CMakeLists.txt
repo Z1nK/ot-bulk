@@ -22,6 +22,7 @@ target_include_directories(executor-lib-obj PUBLIC
 target_link_libraries(executor-lib-obj
   PUBLIC
     $<BUILD_INTERFACE:parser-lib-obj>
+    common::idatasink
 )
 
 # # --------SHARED---------
@@ -33,6 +34,8 @@ set_target_properties(executor-lib-shared PROPERTIES
 )
 
 target_link_libraries(executor-lib-shared
+  PUBLIC
+    common::idatasink
   PRIVATE
     $<BUILD_INTERFACE:executor-lib-obj>
 )
@@ -55,6 +58,8 @@ else()
 endif()
 
 target_link_libraries(executor-lib-static
+  PUBLIC
+    common::idatasink
   PRIVATE
     $<BUILD_INTERFACE:executor-lib-obj>
 )

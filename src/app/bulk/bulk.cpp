@@ -1,16 +1,18 @@
 #include "blocking_queue.hpp"
 
 #include <executor/executor.hpp>
-#include <executor/console_observer.hpp>
-#include <executor/file_observer.hpp>
+#include <executor/sink_observer.hpp>
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
 
 #include <command-parser/command.hpp>
 #include <command-parser/command_parser.hpp>
+#include <datasink/console-sink/console_data_sink.hpp>
+#include <datasink/file-sink/file_data_sink.hpp>
 #include <time-utils/time.hpp>
 
 namespace {
@@ -19,8 +21,8 @@ void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
   CommandParser parser(default_block_size);
   Executor executor;
 
-  executor.subscribe(std::make_shared<ConsoleObserver>());
-  executor.subscribe(std::make_shared<FileObserver>());
+  executor.subscribe(std::make_shared<SinkObserver>(std::make_shared<ConsoleDataSink>()));
+  executor.subscribe(std::make_shared<SinkObserver>(std::make_shared<FileDataSink>()));
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {

@@ -7,6 +7,8 @@ add_library(${LOCAL_LIB_NAME}
 
 add_library(datasink::file-sink ALIAS ${LOCAL_LIB_NAME})
 
+target_compile_features(${LOCAL_LIB_NAME} PUBLIC cxx_std_20)
+
 target_include_directories(${LOCAL_LIB_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../..>

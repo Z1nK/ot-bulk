@@ -8,6 +8,8 @@ target_link_libraries(bulk PRIVATE
   comexec::executor-lib-static
     comexec::parser-lib-static
     common::time-utils
+    datasink::console-sink
+    datasink::file-sink
     Threads::Threads
 )
 
