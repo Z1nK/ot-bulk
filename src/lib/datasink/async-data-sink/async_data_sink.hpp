@@ -8,7 +8,7 @@
 
 class AsyncDataSink final : public IDataSink {
 public:
-  explicit AsyncDataSink(std::shared_ptr<IDataSink> sink);
+  explicit AsyncDataSink(std::unique_ptr<IDataSink> sink);
   ~AsyncDataSink() override;
 
   AsyncDataSink(const AsyncDataSink&) = delete;
@@ -21,7 +21,7 @@ public:
 private:
   void processQueue();
 
-  std::shared_ptr<IDataSink> sink_;
+  std::unique_ptr<IDataSink> sink_;
   BlockingQueue<std::function<void()>> tasks_;
   std::thread worker_;
 };

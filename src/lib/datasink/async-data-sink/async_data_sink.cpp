@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-AsyncDataSink::AsyncDataSink(std::shared_ptr<IDataSink> sink)
+AsyncDataSink::AsyncDataSink(std::unique_ptr<IDataSink> sink)
     : sink_(std::move(sink)), worker_([this] { processQueue(); }) {}
 
 AsyncDataSink::~AsyncDataSink() {

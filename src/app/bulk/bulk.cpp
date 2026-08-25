@@ -23,7 +23,7 @@ void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
 
   executor.subscribe(std::make_shared<SinkObserver>(std::make_shared<ConsoleDataSink>()));
   executor.subscribe(
-      std::make_shared<SinkObserver>(std::make_shared<AsyncDataSink>(std::make_shared<FileDataSink>())));
+      std::make_shared<SinkObserver>(std::make_shared<AsyncDataSink>(std::make_unique<FileDataSink>())));
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {
