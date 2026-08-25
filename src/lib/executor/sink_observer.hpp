@@ -10,7 +10,7 @@
 
 class SinkObserver : public Observer {
 public:
-  explicit SinkObserver(std::shared_ptr<IDataSink> sink) : sink_(std::move(sink)) {}
+  explicit SinkObserver(std::unique_ptr<IDataSink> sink) : sink_(std::move(sink)) {}
 
   void onBlockUpdate(const std::vector<Command>& block) override {
     if (block.empty()) {
@@ -25,5 +25,5 @@ public:
   }
 
 private:
-  std::shared_ptr<IDataSink> sink_;
+  std::unique_ptr<IDataSink> sink_;
 };

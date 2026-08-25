@@ -21,9 +21,9 @@ void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
   CommandParser parser(default_block_size);
   Executor executor;
 
-  executor.subscribe(std::make_shared<SinkObserver>(std::make_shared<ConsoleDataSink>()));
+  executor.subscribe(std::make_shared<SinkObserver>(std::make_unique<ConsoleDataSink>()));
   executor.subscribe(
-      std::make_shared<SinkObserver>(std::make_shared<AsyncDataSink>(std::make_unique<FileDataSink>())));
+      std::make_shared<SinkObserver>(std::make_unique<AsyncDataSink>(std::make_unique<FileDataSink>())));
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {
