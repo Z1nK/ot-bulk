@@ -9,6 +9,12 @@ target_link_libraries(bulk PRIVATE
     Threads::Threads
 )
 
+# libasync.so is installed under lib/async instead of directly under lib, so
+# bulk needs an explicit runtime search path to find it after installation.
+set_target_properties(bulk PROPERTIES
+  INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/async"
+)
+
 if (MSVC)
     target_compile_options(bulk PRIVATE /W4)
 else()

@@ -74,8 +74,8 @@ target_include_directories(async-lib-static PUBLIC
 
 # # -- Installation --
 
-# install(TARGETS async-lib-shared EXPORT async-lib-targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-# set_target_properties(async-lib-shared PROPERTIES EXPORT_NAME async-lib SOVERSION ${PROJ_SOVERSION} VERSION ${PROJ_BUILDVERSION})
+install(TARGETS async-lib-shared EXPORT async-lib-targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/async)
+set_target_properties(async-lib-shared PROPERTIES EXPORT_NAME async-lib SOVERSION ${PROJ_SOVERSION} VERSION ${PROJ_BUILDVERSION})
 
 # install(TARGETS async-lib-static EXPORT async-lib-targets LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 # set_target_properties(async-lib-static PROPERTIES EXPORT_NAME async-lib-static SOVERSION ${PROJ_SOVERSION} VERSION ${PROJ_BUILDVERSION})
