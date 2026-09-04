@@ -1,47 +1,9 @@
-#include <concurrency/blocking_queue.hpp>
-#include <executor/executor.hpp>
-#include <executor/sink_observer.hpp>
+#include <iasync/iasync.hpp>
 
-#include <chrono>
 #include <iostream>
-#include <memory>
 #include <string>
-#include <thread>
 
-#include <command-parser/command.hpp>
-#include <command-parser/command_parser.hpp>
-#include <datasink/async-data-sink/async_data_sink.hpp>
-#include <datasink/console-sink/console_data_sink.hpp>
-#include <datasink/file-sink/file_data_sink.hpp>
-#include <time-utils/time.hpp>
-
-namespace {
-
-void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
-  CommandParser parser(default_block_size);
-  Executor executor;
-
-  executor.subscribe(std::make_shared<SinkObserver>(std::make_unique<ConsoleDataSink>()));
-  executor.subscribe(
-      std::make_shared<SinkObserver>(std::make_unique<AsyncDataSink>(std::make_unique<FileDataSink>())));
-
-  auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
-    if (!block) {
-      return;
-    }
-    executor.addTask(*block);
-    executor.execute();
-  };
-
-  while (auto command = commands.pop()) {
-    executeIfReady(parser.feedLine(*command));
-  }
-  executeIfReady(parser.flush());
-}
-
-}  // namespace
-
-int main(int argc, char* argv[]) {  
+int main(int argc, char* argv[]) {
   int default_block_size;
   if (argc > 1) {
     try {
@@ -54,21 +16,14 @@ int main(int argc, char* argv[]) {
     default_block_size = 3;
   }
 
-  // std::cout << getCurrentTimeStr() << std::endl;
-  // std::cout << getUnixTimestampString() << std::endl;
+  async::Context context = async::connect(default_block_size);
 
-  BlockingQueue<Command> commands;
-
-  std::thread consumer(runConsumer, std::ref(commands), default_block_size);
-
-  // Producer: read stdin line by line, timestamp each line as it arrives  
   std::string line;
   while (std::getline(std::cin, line)) {
-    commands.push(Command(std::move(line)));
+    line.push_back('\n');
+    async::receive(context, line.data(), line.size());
   }
-  commands.close();
-
-  consumer.join();
+  async::disconnect(context);
 
   return 0;
 }
