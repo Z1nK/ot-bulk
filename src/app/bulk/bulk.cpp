@@ -1,16 +1,18 @@
-#include "blocking_queue.hpp"
-
+#include <concurrency/blocking_queue.hpp>
 #include <executor/executor.hpp>
-#include <executor/console_observer.hpp>
-#include <executor/file_observer.hpp>
+#include <executor/sink_observer.hpp>
 
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <thread>
 
 #include <command-parser/command.hpp>
 #include <command-parser/command_parser.hpp>
+#include <datasink/async-data-sink/async_data_sink.hpp>
+#include <datasink/console-sink/console_data_sink.hpp>
+#include <datasink/file-sink/file_data_sink.hpp>
 #include <time-utils/time.hpp>
 
 namespace {
@@ -19,8 +21,9 @@ void runConsumer(BlockingQueue<Command>& commands, int default_block_size) {
   CommandParser parser(default_block_size);
   Executor executor;
 
-  executor.subscribe(std::make_shared<ConsoleObserver>());
-  executor.subscribe(std::make_shared<FileObserver>());
+  executor.subscribe(std::make_shared<SinkObserver>(std::make_unique<ConsoleDataSink>()));
+  executor.subscribe(
+      std::make_shared<SinkObserver>(std::make_unique<AsyncDataSink>(std::make_unique<FileDataSink>())));
 
   auto executeIfReady = [&executor](const std::optional<std::vector<Command>>& block) {
     if (!block) {
@@ -58,8 +61,7 @@ int main(int argc, char* argv[]) {
 
   std::thread consumer(runConsumer, std::ref(commands), default_block_size);
 
-  // Producer: read stdin line by line, timestamp each line as it arrives,
-  // and hand the resulting Command to the consumer.
+  // Producer: read stdin line by line, timestamp each line as it arrives  
   std::string line;
   while (std::getline(std::cin, line)) {
     commands.push(Command(std::move(line)));

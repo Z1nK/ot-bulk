@@ -6,8 +6,8 @@
 #include <queue>
 #include <utility>
 
-// Thread-safe queue used to hand lines off from the producer (stdin reader)
-// to the consumer (parser/executor) thread.
+// Thread-safe FIFO queue used to hand items off between a producer thread
+// and a consumer thread.
 template <typename T>
 class BlockingQueue {
 public:
