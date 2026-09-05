@@ -5,14 +5,14 @@ target_compile_features(bulk PUBLIC cxx_std_20)
 find_package(Threads REQUIRED)
 
 target_link_libraries(bulk PRIVATE
-  comexec::executor-lib-static
-    comexec::parser-lib-static
-    common::time-utils
-    common::concurrency
-    datasink::console-sink
-    datasink::file-sink
-    datasink::async-data-sink
+  async::async-lib-shared
     Threads::Threads
+)
+
+# libasync.so is installed under lib/async instead of directly under lib, so
+# bulk needs an explicit runtime search path to find it after installation.
+set_target_properties(bulk PROPERTIES
+  INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/async"
 )
 
 if (MSVC)

@@ -7,6 +7,8 @@ add_library(${LOCAL_LIB_NAME}
 
 add_library(datasink::async-data-sink ALIAS ${LOCAL_LIB_NAME})
 
+set_property(TARGET ${LOCAL_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_compile_features(${LOCAL_LIB_NAME} PUBLIC cxx_std_20)
 
 target_include_directories(${LOCAL_LIB_NAME} PUBLIC
