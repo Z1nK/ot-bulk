@@ -7,6 +7,8 @@ add_library(${LOCAL_LIB_NAME}
 
 add_library(datasink::console-sink ALIAS ${LOCAL_LIB_NAME})
 
+set_property(TARGET ${LOCAL_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(${LOCAL_LIB_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../..>

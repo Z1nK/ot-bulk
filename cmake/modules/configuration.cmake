@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------------------
 # list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 include(copy_tsv_files)
+include(GNUInstallDirs)
 
 # -----------------------------------------------------------------------------
 # Variables
