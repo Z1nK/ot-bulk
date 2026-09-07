@@ -28,6 +28,7 @@ target_link_libraries(async-lib-obj
     datasink::console-sink
     datasink::file-sink
     datasink::async-data-sink
+    datasink::pool-data-sink
     common::idatasink
     Threads::Threads
 )
