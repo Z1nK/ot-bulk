@@ -12,17 +12,21 @@
 #include <datasink/async-data-sink/async_data_sink.hpp>
 #include <datasink/console-sink/console_data_sink.hpp>
 #include <datasink/file-sink/file_data_sink.hpp>
+#include <datasink/pool-data-sink/pool_data_sink.hpp>
 
 namespace async {
 
 namespace {
 
+constexpr std::size_t kFileSinkWorkerCount = 2;
+
 struct Connection {
   explicit Connection(std::size_t bulk_size) : parser(bulk_size) {
     executor.subscribe(std::make_shared<SinkObserver>(
         std::make_unique<AsyncDataSink>(std::make_unique<ConsoleDataSink>())));
-    executor.subscribe(std::make_shared<SinkObserver>(
-        std::make_unique<AsyncDataSink>(std::make_unique<FileDataSink>())));
+    executor.subscribe(std::make_shared<SinkObserver>(std::make_unique<PoolDataSink>(
+        [](std::size_t worker_index) { return std::make_unique<FileDataSink>(worker_index); },
+        kFileSinkWorkerCount)));
   }
 
   CommandParser parser;
