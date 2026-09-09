@@ -21,7 +21,7 @@ Commands are grouped into blocks in one of two ways:
   first. Braces may be nested; only the outermost pair delimits a block.
   A dynamic block left open at end of input is discarded, not flushed.
 
-Example input (block size 3, `src/app/bulk/testdata.tsv`):
+Example input (block size 3, `src/app/bulk-cli/testdata.tsv`):
 
 ```
 CMD1
@@ -60,7 +60,8 @@ their own worker threads so a slow file write never blocks command intake.
 
 ## Building
 
-Requires a C++20 compiler and CMake 3.20+. GoogleTest is fetched
+Requires a C++20 compiler, CMake 3.20+, and Boost (headers + `Boost::boost`,
+used by `bulk-server`'s coroutine-based `TcpServer`). GoogleTest is fetched
 automatically if not found on the system.
 
 ```sh
@@ -132,5 +133,23 @@ async::disconnect(ctx);                          // flush the trailing block, cl
 
 `Context` is an opaque handle — the caller never interprets it, only passes
 it back to `receive()`/`disconnect()`. Internally it owns a `CommandParser`
-and `Executor` wired to the console and file sinks; `bulk.cpp` never touches
-those types directly.
+and `Executor` wired to the console and file sinks. Both `bulk.cpp` and
+`bulk-server`'s per-connection handler only call through this interface,
+never touching those types directly.
+
+### The `server` library interface
+
+`src/lib/server/server.hpp` provides `TcpServer`, a small wrapper around
+`boost::asio::ip::tcp::acceptor` using C++20 native coroutines
+(`boost::asio::awaitable` + `co_spawn`). It accepts connections in a loop and
+hands each one to a caller-supplied handler, so the accept/session-spawn
+plumbing is reusable across different protocols:
+
+```cpp
+boost::asio::io_context io;
+TcpServer server(io, {.port = 9000, .on_session = [](tcp::socket socket) {
+                        return myHandler(std::move(socket)); // awaitable<void>
+                      }});
+server.run();
+io.run();
+```
