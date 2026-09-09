@@ -7,6 +7,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(bulk-server PRIVATE
   async::async-lib-shared
     Threads::Threads
+    server::server-lib-static
 )
 
 # libasync.so is installed under lib/async instead of directly under lib, so
