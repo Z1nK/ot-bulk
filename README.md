@@ -1,7 +1,12 @@
 # ot-bulk
 
-A command-line bulk processor: it reads commands from stdin, groups them into
-blocks, and reports each completed block to a console log and a log file.
+A bulk command processor: it groups incoming commands into blocks and reports
+each completed block to a console log and a log file. Two front ends feed the
+same processing engine:
+
+- **`bulk`** — reads commands from stdin.
+- **`bulk-server`** — reads commands from TCP connections, one independent
+  block stream per connection.
 
 ## Block splitting rules
 
@@ -65,6 +70,8 @@ cmake --build build -j"$(nproc)"
 
 ## Running
 
+### `bulk` (stdin)
+
 ```sh
 ./build/bin/bulk <block_size> < input.txt
 # or interactively / piped:
@@ -72,7 +79,22 @@ echo -e "cmd1\ncmd2\ncmd3\ncmd4" | ./build/bin/bulk 3
 ```
 
 `block_size` defaults to `3` if omitted. A sample input file is available at
-`src/app/bulk/testdata.tsv` (copied next to the `bulk` binary on build).
+`src/app/bulk-cli/testdata.tsv` (copied next to the `bulk` binary on build).
+
+### `bulk-server` (TCP)
+
+```sh
+./build/bin/bulk-server <port> <block_size>
+```
+
+`port` defaults to `9000`, `block_size` to `3` if omitted. Each accepted
+connection gets its own block stream (its own `async::Context`), so
+concurrent clients don't interleave blocks; a block stream is flushed when
+its connection closes. Test it with `nc`:
+
+```sh
+printf 'cmd1\ncmd2\ncmd3\ncmd4\ncmd5\n' | nc 127.0.0.1 9000
+```
 
 ## Testing
 
@@ -84,13 +106,16 @@ ctest --test-dir build --output-on-failure
 
 ```
 src/
-├── app/bulk/            bulk executable (reads stdin, drives the async library)
+├── app/
+│   ├── bulk-cli/            bulk executable (reads stdin, drives the async library)
+│   └── bulk-server/         bulk-server executable (reads TCP connections, drives the async library)
 └── lib/
     ├── async/           command processing, built as a shared/static library
     │   ├── command-parser/  splits an incoming command stream into blocks
     │   ├── executor/        dispatches completed blocks to subscribed observers
     │   ├── datasink/        console / file / async-wrapping output sinks
     │   └── iasync/          public connect()/receive()/disconnect() interface
+    ├── server/          TcpServer: a minimal Boost.Asio C++20-coroutine TCP server
     ├── concurrency/     thread-safe blocking queue, shared by the datasink layer
     └── time-utils/      timestamp helpers
 ```

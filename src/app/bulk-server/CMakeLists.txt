@@ -1,4 +1,4 @@
-add_executable(bulk-server bulk.cpp)
+add_executable(bulk-server bulk_server.cpp)
 
 target_compile_features(bulk-server PUBLIC cxx_std_20)
 
