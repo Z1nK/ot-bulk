@@ -44,6 +44,15 @@ find_package(GTest QUIET)
         FetchContent_MakeAvailable(googletest)
     endif()
 endif()
+
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
+find_package(Boost REQUIRED)
+    if(NOT Boost_FOUND)
+        message(FATAL_ERROR "Boost library not found")
+    endif()
+    
 # -----------------------------------------------------------------------------
 # Generating config files
 # -----------------------------------------------------------------------------

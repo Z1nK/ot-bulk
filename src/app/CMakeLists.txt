@@ -1,1 +1,1 @@
-add_subdirectory(bulk)
+add_subdirectory(bulk-cli)
