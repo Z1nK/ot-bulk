@@ -14,6 +14,9 @@ public:
   void push(T value) {
     {
       std::lock_guard<std::mutex> lock(mutex_);
+      if (closed_) {
+        throw std::runtime_error("Cannot push to a closed queue");
+      }
       queue_.push(std::move(value));
     }
     cv_.notify_one();
