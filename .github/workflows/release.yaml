@@ -16,7 +16,7 @@ jobs:
           submodules: true
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtest-dev
+        run: sudo apt-get update && sudo apt-get install -y libgtest-dev && sudo apt install -y libboost-dev
 
       - name: Configure
         run: cmake . -DPATCH_VERSION=${{ github.run_number }}

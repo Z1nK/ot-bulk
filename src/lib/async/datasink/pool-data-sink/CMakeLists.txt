@@ -21,5 +21,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(${LOCAL_LIB_NAME} PUBLIC
   common::idatasink
   common::concurrency
+  datasink::shared-sink-pool
   Threads::Threads
 )

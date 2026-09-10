@@ -55,8 +55,11 @@ one; the trailing `CMD10` is flushed once input ends even though it didn't
 reach the block size.)
 
 Each completed block is written to stdout and appended as a `bulkNNN.log`
-file in the working directory; both outputs are produced asynchronously on
-their own worker threads so a slow file write never blocks command intake.
+file in the working directory; both outputs are produced asynchronously so a
+slow file write never blocks command intake. The console and file writers
+run on a fixed, process-wide pool of worker threads (1 console thread, 2
+file threads) shared by every `async::Context` — opening more connections
+adds more per-context queues, not more threads.
 
 ## Building
 
@@ -114,7 +117,8 @@ src/
     ├── async/           command processing, built as a shared/static library
     │   ├── command-parser/  splits an incoming command stream into blocks
     │   ├── executor/        dispatches completed blocks to subscribed observers
-    │   ├── datasink/        console / file / async-wrapping output sinks
+    │   ├── datasink/        console / file sinks, plus the shared worker pool and
+    │   │                    per-context mailbox adapter that queue writes onto it
     │   └── iasync/          public connect()/receive()/disconnect() interface
     ├── server/          TcpServer: a minimal Boost.Asio C++20-coroutine TCP server
     ├── concurrency/     thread-safe blocking queue, shared by the datasink layer
@@ -133,9 +137,12 @@ async::disconnect(ctx);                          // flush the trailing block, cl
 
 `Context` is an opaque handle — the caller never interprets it, only passes
 it back to `receive()`/`disconnect()`. Internally it owns a `CommandParser`
-and `Executor` wired to the console and file sinks. Both `bulk.cpp` and
-`bulk-server`'s per-connection handler only call through this interface,
-never touching those types directly.
+and `Executor` wired to per-context queues (mailboxes) for the console and
+file sinks; those mailboxes are drained by two lazily-created, process-wide
+`SharedSinkPool`s (1 thread for console output, 2 for file output) so the
+thread count stays fixed no matter how many contexts exist. Both
+`bulk.cpp` and `bulk-server`'s per-connection handler only call through this
+interface, never touching those types directly.
 
 ### The `server` library interface
 

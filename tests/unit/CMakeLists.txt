@@ -2,6 +2,7 @@ add_executable(unit_tests
   command_parser_test.cpp
   executor_test.cpp
   pool_data_sink_test.cpp
+  shared_sink_pool_test.cpp
   time_utils_test.cpp
 )
 
@@ -12,6 +13,7 @@ target_link_libraries(unit_tests PRIVATE
   comexec::executor-lib-static
   common::time-utils
   datasink::pool-data-sink
+  datasink::shared-sink-pool
   GTest::gtest_main
 )
 

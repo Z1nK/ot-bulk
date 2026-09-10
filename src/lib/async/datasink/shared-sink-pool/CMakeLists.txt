@@ -1,11 +1,11 @@
-set(LOCAL_LIB_NAME async-data-sink)
+set(LOCAL_LIB_NAME shared-sink-pool)
 
 add_library(${LOCAL_LIB_NAME}
-  async_data_sink.cpp
-  async_data_sink.hpp
+  shared_sink_pool.cpp
+  shared_sink_pool.hpp
 )
 
-add_library(datasink::async-data-sink ALIAS ${LOCAL_LIB_NAME})
+add_library(datasink::shared-sink-pool ALIAS ${LOCAL_LIB_NAME})
 
 set_property(TARGET ${LOCAL_LIB_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 

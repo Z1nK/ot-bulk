@@ -1,5 +1,5 @@
 add_subdirectory(idatasink)
 add_subdirectory(console-sink)
 add_subdirectory(file-sink)
-add_subdirectory(async-data-sink)
+add_subdirectory(shared-sink-pool)
 add_subdirectory(pool-data-sink)
