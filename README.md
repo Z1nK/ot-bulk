@@ -160,3 +160,49 @@ TcpServer server(io, {.port = 9000, .on_session = [](tcp::socket socket) {
 server.run();
 io.run();
 ```
+
+### Shared sink pool: mailboxes over a fixed thread pool
+
+`src/lib/async/datasink/shared-sink-pool/` is what lets every `async::Context`
+write asynchronously without spawning a thread per connection. Three pieces:
+
+- **`SharedSinkPool`** — owns a fixed set of worker threads and one leaf sink
+  per thread (e.g. the console writer or a file writer). It's created once,
+  lazily, and shared process-wide.
+- **`Mailbox`** — a per-`Context` FIFO queue, created via
+  `pool.createMailbox()`. Each context gets its own mailbox(es); the pool
+  itself has no idea what a context is, it just drains whichever mailboxes
+  have work.
+- **`PoolDataSink`** — the `IDataSink` a `Context` actually holds. `write()`
+  round-robins across its mailboxes; `flush()` waits for all of them to
+  drain.
+
+Posting a message (`Mailbox::post`) pushes it onto the mailbox's own queue,
+then atomically flips a `scheduled` flag; only the caller that flips it
+`false → true` enqueues the mailbox onto the pool's shared ready-queue. That
+guarantees a mailbox is queued for draining at most once at a time, so at
+most one worker thread ever touches it, and messages posted to it are
+delivered in FIFO order — even though the workers themselves are shared
+across every context's mailboxes.
+
+Each worker thread just loops: pop a ready mailbox, drain up to a bounded
+batch (64 messages) into its own sink, then reschedule the mailbox if more
+arrived while it was running. The batch cap keeps one busy context from
+starving the others.
+
+`flush()` is implemented as a barrier message rather than a separate code
+path: `Mailbox::drain()` posts a message carrying a `std::promise<void>` and
+blocks on its future. A worker that dequeues a barrier message calls
+`sink.flush()` and resolves the promise — since it's just another message in
+the same FIFO queue, resolving it proves every write queued ahead of it was
+already delivered. (`drain()` must not be called from a pool worker thread:
+the barrier it waits on can only be resolved by a worker, so a worker
+blocking on its own barrier would deadlock.)
+
+Delivery (`Mailbox::deliver`) is `noexcept`: a sink that throws just logs to
+stderr instead of crashing a shared worker thread or leaving a `flush()`
+caller blocked forever. Destroying a `PoolDataSink` (e.g. when a `Context`
+disconnects) simply drops its mailbox references — anything still queued is
+delivered by the pool afterward, so teardown never blocks on draining a
+queue. Destroying the `SharedSinkPool` itself closes the ready-queue and
+joins the worker threads.
