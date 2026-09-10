@@ -1,19 +1,19 @@
 #pragma once
-#include <concurrency/blocking_queue.hpp>
 #include <datasink/idatasink/idatasink.hpp>
+#include <datasink/shared-sink-pool/shared_sink_pool.hpp>
 
 #include <cstddef>
-#include <functional>
 #include <memory>
-#include <thread>
 #include <vector>
 
+// Adapts one or more SharedSinkPool mailboxes to the IDataSink interface.
+// write() round-robins across the mailboxes; flush() is a fan-out barrier
+// across all of them. Destruction simply drops the mailboxes: already
+// queued messages are still delivered by the pool's worker threads
+// afterward, so teardown never blocks on draining a queue.
 class PoolDataSink final : public IDataSink {
 public:
-  using SinkFactory = std::function<std::unique_ptr<IDataSink>(std::size_t worker_index)>;
-
-  PoolDataSink(SinkFactory factory, std::size_t worker_count);
-  ~PoolDataSink() override;
+  explicit PoolDataSink(std::vector<std::shared_ptr<Mailbox>> mailboxes);
 
   PoolDataSink(const PoolDataSink&) = delete;
   PoolDataSink& operator=(const PoolDataSink&) = delete;
@@ -22,14 +22,6 @@ public:
   void flush() override;
 
 private:
-  struct Worker {
-    std::unique_ptr<IDataSink> sink;
-    BlockingQueue<std::function<void()>> queue;
-    std::thread thread;
-  };
-
-  void processQueue(Worker& worker);
-
-  std::vector<std::unique_ptr<Worker>> workers_;
+  std::vector<std::shared_ptr<Mailbox>> mailboxes_;
   std::size_t next_ = 0;
 };

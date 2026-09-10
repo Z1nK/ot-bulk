@@ -27,7 +27,7 @@ target_link_libraries(async-lib-obj
     comexec::parser-lib-static
     datasink::console-sink
     datasink::file-sink
-    datasink::async-data-sink
+    datasink::shared-sink-pool
     datasink::pool-data-sink
     common::idatasink
     Threads::Threads

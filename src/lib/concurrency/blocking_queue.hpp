@@ -4,6 +4,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <stdexcept>
 #include <utility>
 
 // Thread-safe FIFO queue used to hand items off between a producer thread
@@ -44,8 +45,24 @@ public:
     return value;
   }
 
+  // Returns an item if one is immediately available, without blocking.
+  std::optional<T> try_pop() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (queue_.empty()) {
+      return std::nullopt;
+    }
+    T value = std::move(queue_.front());
+    queue_.pop();
+    return value;
+  }
+
+  bool empty() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return queue_.empty();
+  }
+
 private:
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   std::condition_variable cv_;
   std::queue<T> queue_;
   bool closed_ = false;
